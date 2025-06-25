@@ -1,0 +1,49 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.epam</groupId>
+    <artifactId>xap-kafka</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>xap-kafka</name>
+    <packaging>pom</packaging>
+
+    <repositories>
+	    <repository>
+	      <id>central</id>
+	      <name>Maven Central</name>
+	      <url>https://repo1.maven.org/maven2/</url>
+	    </repository>
+	    <repository>
+	      <id>org.openspaces</id>
+	      <url>https://maven-repository.openspaces.org</url>
+	    </repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central</id>
+			<name>Maven Central</name>
+			<url>https://repo1.maven.org/maven2/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>org.openspaces</id>
+			<url>https://maven-repository.openspaces.org</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+    <properties>
+        <gsVersion>17.1.1</gsVersion>
+        <springVersion>5.1.7.RELEASE</springVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <modules>
+        <module>kafka-persistence</module>
+        <module>example</module>
+    </modules>
+
+    <dependencies>
+    </dependencies>
+
+
+</project>

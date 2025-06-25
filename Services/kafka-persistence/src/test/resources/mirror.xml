@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:os-core="http://www.openspaces.org/schema/core"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+       http://www.openspaces.org/schema/core http://www.openspaces.org/schema/9.1/core/openspaces-core.xsd">
+
+    <bean id="propertiesConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    </bean>
+
+
+    <bean id="producerProperties" class="com.epam.openspaces.persistency.kafka.ProducerProperties" factory-method="getInstance" />
+
+    <bean id="kafkaSpaceSynchronizationEndpoint" class="com.epam.openspaces.persistency.kafka.KafkaSpaceSynchronizationEndpointFactoryBean" >
+        <property name="producerProperties" ref="producerProperties"/>
+    </bean>
+
+    <!--
+        The mirror space. Uses the Kafka external data source. Persists changes done on the Space that
+        connects to this mirror space into the Kafka.
+    -->
+    <os-core:mirror id="mirror" url="/./mirror-service?groups=kafka-test" space-sync-endpoint="kafkaSpaceSynchronizationEndpoint" operation-grouping="group-by-replication-bulk">
+        <os-core:source-space name="space" partitions="2" backups="1"/>
+    </os-core:mirror>
+
+</beans>
