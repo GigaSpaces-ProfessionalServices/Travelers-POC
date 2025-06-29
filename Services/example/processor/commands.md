@@ -3,7 +3,7 @@
 ## Build-Push
 
 ```sh
-cd /home/ubuntu/prj/xap-kafka/example/processor
+cd /home/ubuntu/prj/Travelers/xap-kafka/example/processor
 mvn clean package
 docker build -t processor .
 docker tag processor localhost:32000/processor:latest

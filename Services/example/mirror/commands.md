@@ -3,7 +3,7 @@
 ## Build-Push
 
 ```sh
-cd /home/ubuntu/prj/xap-kafka/example/mirror
+cd /home/ubuntu/prj/Travelers/xap-kafka/example/mirror
 mvn clean package
 docker build -t mirror .
 docker tag mirror localhost:32000/mirror:latest

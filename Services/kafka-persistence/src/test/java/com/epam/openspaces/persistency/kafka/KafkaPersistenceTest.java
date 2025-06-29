@@ -16,8 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import static com.epam.openspaces.persistency.kafka.KafkaPersistenceConstants.SPACE_DOCUMENT_KAFKA_TOPIC_PROPERTY_NAME;
 import static org.junit.Assert.assertEquals;
 
 public class KafkaPersistenceTest {
@@ -140,8 +138,7 @@ public class KafkaPersistenceTest {
             // Insert category to space
             SpaceDocument category = new SpaceDocument("Category")
                     .setProperty("name", "category" + i)
-                    .setProperty("description", "description")
-                    .setProperty(SPACE_DOCUMENT_KAFKA_TOPIC_PROPERTY_NAME, "category");
+                    .setProperty("description", "description");
 
             gigaspace.write(category);
             addMessageToList(expectedList, KafkaDataOperationType.WRITE, category);

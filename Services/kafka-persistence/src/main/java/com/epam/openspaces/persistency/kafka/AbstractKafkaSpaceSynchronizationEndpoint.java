@@ -35,6 +35,11 @@ public abstract class AbstractKafkaSpaceSynchronizationEndpoint
      */
     protected abstract String resolveTopicForMessage(M message);
 
+    /**
+     * applies filter to the message
+     */
+    protected abstract boolean applyFilter(M message);
+
     @Override
     public void onTransactionSynchronization(TransactionData transactionData) {
         executeDataSyncOperations(transactionData.getTransactionParticipantDataItems());
@@ -59,6 +64,10 @@ public abstract class AbstractKafkaSpaceSynchronizationEndpoint
             try {
                 M message = kafkaMessageFactory.createMessage(dataSyncOperation);
                 K key = kafkaMessageFactory.createMessageKey(dataSyncOperation);
+
+                if (!applyFilter(message)) {
+                    continue;
+                }
 
                 String topic = resolveTopicForMessage(message);
 

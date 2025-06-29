@@ -3,7 +3,7 @@
 ## Build-Push
 
 ```sh
-cd /home/ubuntu/prj/xap-kafka/example/feeder
+cd /home/ubuntu/prj/Travelers/xap-kafka/example/feeder
 mvn clean package
 docker build -t feeder .
 docker tag feeder localhost:32000/feeder:latest
