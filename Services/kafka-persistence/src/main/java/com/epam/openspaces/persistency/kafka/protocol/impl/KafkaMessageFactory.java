@@ -46,7 +46,7 @@ public class KafkaMessageFactory implements AbstractKafkaMessageFactory<KafkaMes
                 throw new KafkaPersistenceException("Not serializable object of DataSyncOperation " + syncOperation);
             }
         } else if (syncOperation.supportsDataAsDocument()) {
-            return new KafkaMessage(type, syncOperation.getDataAsDocument().getProperties());
+            return new KafkaMessage(type, syncOperation.getDataAsDocument().getProperties(), syncOperation.getTypeDescriptor().getTypeName());
         } else {
             throw new KafkaPersistenceException("Unable to convert DataSyncOperation to Kafka protocol. " +
                     "DataSyncOperation = " + syncOperation);

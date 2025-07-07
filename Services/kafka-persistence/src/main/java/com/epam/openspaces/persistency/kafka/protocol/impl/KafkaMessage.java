@@ -22,6 +22,7 @@ public class KafkaMessage implements AbstractKafkaMessage, Serializable {
 
     private Serializable dataAsObject;
     private Map<String, Object> dataAsMap;
+    private String typeName;
 
     public KafkaMessage(KafkaDataOperationType dataOperationType,
                         Serializable dataAsObject) {
@@ -30,9 +31,10 @@ public class KafkaMessage implements AbstractKafkaMessage, Serializable {
     }
 
     public KafkaMessage(KafkaDataOperationType dataOperationType,
-                        Map<String, Object> dataAsMap) {
+                        Map<String, Object> dataAsMap, String typeName) {
         this.dataOperationType = dataOperationType;
         this.dataAsMap = dataAsMap;
+        this.typeName = typeName;
     }
 
     /**
@@ -69,6 +71,13 @@ public class KafkaMessage implements AbstractKafkaMessage, Serializable {
     public boolean hasDataAsMap() {
         return dataAsMap != null;
     }
+    public boolean hasTypeName() {
+        return typeName != null;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
 
     @Override
     public int hashCode() {
@@ -82,6 +91,8 @@ public class KafkaMessage implements AbstractKafkaMessage, Serializable {
                 * result
                 + ((dataOperationType == null) ? 0 : dataOperationType
                         .hashCode());
+        result = prime * result
+                + ((typeName == null) ? 0 : typeName.hashCode());
         return result;
     }
 
@@ -114,6 +125,13 @@ public class KafkaMessage implements AbstractKafkaMessage, Serializable {
         if (dataOperationType != other.dataOperationType) {
             return false;
         }
+        if (typeName == null) {
+            if (other.typeName != null) {
+                return false;
+            }
+        } else if (!typeName.equals(other.typeName)) {
+            return false;
+        }
         return true;
     }
 
@@ -121,6 +139,7 @@ public class KafkaMessage implements AbstractKafkaMessage, Serializable {
     public String toString() {
         return "KafkaMessage{" + "dataOperationType=" + dataOperationType
                 + ", dataAsObject=" + dataAsObject + ", dataAsMap=" + dataAsMap
+                + ", typeName=" + typeName
                 + '}';
     }
 }

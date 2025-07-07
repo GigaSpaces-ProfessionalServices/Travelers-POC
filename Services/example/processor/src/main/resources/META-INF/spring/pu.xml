@@ -19,6 +19,11 @@
         A bean representing a space (an IJSpace implementation).
     -->
     <os-core:space id="space" url="/./space" schema="default" mirror="true">
+        <os-core:properties>
+            <props>
+                <prop key="cluster-config.groups.group.repl-policy.repl-full-take">true</prop>
+            </props>
+        </os-core:properties>
     </os-core:space>
 
     <!--

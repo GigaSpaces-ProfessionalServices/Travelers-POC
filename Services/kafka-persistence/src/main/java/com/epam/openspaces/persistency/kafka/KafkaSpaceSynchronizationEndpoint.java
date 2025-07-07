@@ -33,8 +33,8 @@ public class KafkaSpaceSynchronizationEndpoint extends AbstractKafkaSpaceSynchro
     @Override
     protected boolean applyFilter(KafkaMessage message) {
         if (message.hasDataAsMap()) {
-            Object zzMetaDiTimestamp = message.getDataAsMap().get("zz_META_DI_TIMESTAMP");
-            return zzMetaDiTimestamp != null;
+            Object zzMetaDiTimestamp = message.getDataAsMap().get("ZZ_META_DI_TIMESTAMP");
+            return zzMetaDiTimestamp == null;
         } else {
             return true;
         }

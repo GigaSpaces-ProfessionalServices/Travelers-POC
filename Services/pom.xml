@@ -32,7 +32,7 @@
 	</pluginRepositories>
 
     <properties>
-        <gsVersion>17.1.1</gsVersion>
+        <gsVersion>17.0.1-patch-b-1</gsVersion>
         <springVersion>5.1.7.RELEASE</springVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

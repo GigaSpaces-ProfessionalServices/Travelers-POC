@@ -160,7 +160,7 @@ public class KafkaPersistenceTest {
 
     private void addMessageToList(List<KafkaMessage> list, KafkaDataOperationType type, SpaceDocument document){
         Map<String, Object> updateObjectAsMap = new HashMap<String, Object>(document.getProperties());
-        KafkaMessage messageRemove = new KafkaMessage(type, updateObjectAsMap);
+        KafkaMessage messageRemove = new KafkaMessage(type, updateObjectAsMap, document.getTypeName());
         list.add(messageRemove);
     }
 

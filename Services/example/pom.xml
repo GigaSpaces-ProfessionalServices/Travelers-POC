@@ -25,7 +25,7 @@
     </repositories>
 
     <properties>
-        <gsVersion>17.1.1</gsVersion>
+        <gsVersion>17.0.1-patch-b-1</gsVersion>
         <springVersion>5.1.7.RELEASE</springVersion>
         <hibernate.version>3.6.5.Final</hibernate.version>
         <c3po.version>0.9.1</c3po.version>
