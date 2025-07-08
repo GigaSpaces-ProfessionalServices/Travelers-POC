@@ -1,7 +1,7 @@
 # Travelers Data Integration Demo
 
-This project demonstrates a data integration workflow using Kafka, DB2, SpaceDeck, and PostgreSQL with various microservices deployed via Docker and Helm.
-
+## Architecture   
+![travelers-architecture.png](image/travelers-architecture.png)
 ---
 
 ## 🔧 Build and Deployment Instructions
