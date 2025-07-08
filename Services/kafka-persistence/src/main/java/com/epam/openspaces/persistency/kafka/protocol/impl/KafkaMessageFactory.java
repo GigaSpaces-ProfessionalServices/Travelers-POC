@@ -1,6 +1,7 @@
 package com.epam.openspaces.persistency.kafka.protocol.impl;
 
 import com.epam.openspaces.persistency.kafka.KafkaPersistenceException;
+import com.epam.openspaces.persistency.kafka.consumer.KafkaConsumerFactoryBean;
 import com.epam.openspaces.persistency.kafka.protocol.AbstractKafkaMessageFactory;
 import com.gigaspaces.sync.DataSyncOperation;
 import com.gigaspaces.sync.DataSyncOperationType;

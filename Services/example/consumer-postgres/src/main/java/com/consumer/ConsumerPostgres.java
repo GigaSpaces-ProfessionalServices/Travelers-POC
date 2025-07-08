@@ -17,29 +17,31 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public class SimpleKafkaConsumer {
+public class ConsumerPostgres {
     private static volatile boolean running = true;
     private final Logger log = Logger.getLogger(this.getClass().getName());
     private GigaSpace gigaSpace;
     private Map<String, List<String>> typeAndKeyMap;
 
     public static void main(String[] args) {
-        SimpleKafkaConsumer simpleKafkaConsumer = new SimpleKafkaConsumer();
-        simpleKafkaConsumer.setGiGaspaceConfig();
-        simpleKafkaConsumer.setTypesAndKeys();
-        simpleKafkaConsumer.kafkaV2();
+        ConsumerPostgres consumer = new ConsumerPostgres();
+        consumer.setGiGaspaceConfig();
+        consumer.setTypesAndKeys();
+        consumer.kafkaV2();
     }
 
     public void setGiGaspaceConfig() {
         String locators = "xap-manager-service";
-        System.out.println("Using locators: " + locators);
-        gigaSpace = new GigaSpaceConfigurer(new SpaceProxyConfigurer("space")
-                .lookupGroups("xap-17.0.1")
+        String spaceName = "space";
+        String lookupGroup = "xap-17.0.1";
+        gigaSpace = new GigaSpaceConfigurer(new SpaceProxyConfigurer(spaceName)
+                .lookupGroups(lookupGroup)
                 .lookupLocators(locators))
                 .gigaSpace();
         log.info("gigaSpace is set " + gigaSpace);
@@ -88,7 +90,11 @@ public class SimpleKafkaConsumer {
                     String operationType = kafkaMessage.getDataOperationType().name();
                     if (kafkaMessage.hasDataAsMap()) {
                         log.info("Consuming Kafka message with operation type " + operationType + " and data " + kafkaMessage.getDataAsMap());
-                        Map<String, Object> dataAsMap = kafkaMessage.getDataAsMap();
+                        //Map<String, Object> dataAsMap = ;
+                        Map<String, Object> dataAsMap = new HashMap<>(kafkaMessage.getDataAsMap());
+                        log.info("dataAsMap : "+dataAsMap);
+                        dataAsMap.remove("ZZ_META_DI_TIMESTAMP");
+                        log.info("removed ZZ_META_DI_TIMESTAMP ::" + dataAsMap);
                         //if ("WRITE".equals(operationType) || "UPDATE".equals(operationType)) {
                         performPostgresOperation(operationType, dataAsMap, kafkaMessage.getTypeName()); // Handles dynamic fields
                         //}
@@ -136,7 +142,7 @@ public class SimpleKafkaConsumer {
             } else {
                 log.info("Unknown operation type: " + operationType);
             }
-            conn.commit();
+            //conn.commit();
 
         } catch (Exception e) {
             e.printStackTrace();

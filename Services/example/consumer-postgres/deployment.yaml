@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: java-main-container
-          image: public.ecr.aws/dih-ppc64le/travelers/writeback-service:0.10
+          image: public.ecr.aws/dih-ppc64le/travelers/writeback-service:0.13
           imagePullPolicy: Always
           resources:
             limits:

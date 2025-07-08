@@ -36,6 +36,7 @@
         <module>processor</module>
         <module>feeder</module>
         <module>consumer</module>
+        <module>consumer-postgres</module>
     </modules>
     <dependencies>
         <dependency>

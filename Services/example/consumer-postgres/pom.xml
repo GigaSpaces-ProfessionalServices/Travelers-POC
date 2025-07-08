@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>SimpleConsumer</artifactId>
+    <artifactId>consumer-postgres</artifactId>
     <version>1.0-SNAPSHOT</version>
     <repositories>
         <repository>
@@ -94,7 +94,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.consumer.SimpleKafkaConsumer</mainClass>
+                            <mainClass>com.consumer.ConsumerPostgres</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
