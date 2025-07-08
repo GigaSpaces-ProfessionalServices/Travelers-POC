@@ -1,5 +1,5 @@
 #!/bin/bash
-DEPLOYMENT_FILE="/home/jay/work/gigaspace/Travelers/Travelers-POC/Services/example/consumer-postgres/deployment.yaml"
+DEPLOYMENT_FILE="./Travelers-POC/Services/example/consumer-postgres/deployment.yaml"
 NAMESPACE="dih"
 
 echo "🗑️ Deleting deployment via kubectl from $DEPLOYMENT_FILE..."
