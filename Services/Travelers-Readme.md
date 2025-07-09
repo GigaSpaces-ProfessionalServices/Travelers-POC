@@ -99,7 +99,7 @@ kubectl apply -f ./Travelers-POC/Services/example/consumer-postgres/deployment.y
 - Deploy Space, Mirror, and Writeback services
 - Recreate Kafka topic
 - Delete existing pipelines
-- Ensure DB2 tables are created and contain data
+- Ensure DB2 tables are created and contain data ([db2-queries.sql](example/script/db2-queries.sql))
 
 ### ✅ Pre-Check
 
