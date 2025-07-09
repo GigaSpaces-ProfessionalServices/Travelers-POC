@@ -13,7 +13,7 @@
     </parent>
 
     <properties>
-        <gs.version>17.1.1</gs.version>
+        <gs.version>17.0.1-patch-b-1</gs.version>
         <kafka.version>0.8.0</kafka.version>
         <commons.lang.version>2.3</commons.lang.version>
         <commons.io.version>2.4</commons.io.version>

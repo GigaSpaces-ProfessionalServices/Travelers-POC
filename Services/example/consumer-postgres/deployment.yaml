@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: writeback-consumer
+  labels:
+    app: writeback-consumer
+  namespace: dih  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: writeback-consumer
+  template:
+    metadata:
+      labels:
+        app: writeback-consumer
+    spec:
+      containers:
+        - name: java-main-container
+          image: public.ecr.aws/dih-ppc64le/travelers/writeback-service:0.13
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080 # change if your app uses a different port

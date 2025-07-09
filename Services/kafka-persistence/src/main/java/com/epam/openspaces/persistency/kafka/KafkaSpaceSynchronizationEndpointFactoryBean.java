@@ -14,7 +14,6 @@ import org.springframework.beans.factory.FactoryBean;
 import java.util.Properties;
 
 import static com.epam.openspaces.persistency.kafka.KafkaSpaceSynchronizationEndpoint.Config;
-import static com.epam.openspaces.persistency.kafka.KafkaPersistenceConstants.SPACE_DOCUMENT_KAFKA_TOPIC_PROPERTY_NAME;
 
 /**
  * A factory bean which creates {@link KafkaSpaceSynchronizationEndpoint} with given producer properties.
@@ -27,8 +26,6 @@ public class KafkaSpaceSynchronizationEndpointFactoryBean implements FactoryBean
 
     private Properties producerProperties;
     private Producer<KafkaMessageKey, KafkaMessage> producer;
-
-    private String spaceDocumentKafkaTopicPropertyName = SPACE_DOCUMENT_KAFKA_TOPIC_PROPERTY_NAME;
 
     @Override
     public KafkaSpaceSynchronizationEndpoint getObject() throws Exception {
@@ -46,7 +43,6 @@ public class KafkaSpaceSynchronizationEndpointFactoryBean implements FactoryBean
 
     private Config createSynchronizationEndpointConfig() {
         Config config = new Config();
-        config.setSpaceDocumentKafkaTopicPropertyName(spaceDocumentKafkaTopicPropertyName);
         return config;
     }
 
@@ -68,10 +64,6 @@ public class KafkaSpaceSynchronizationEndpointFactoryBean implements FactoryBean
 
     public void setProducerProperties(Properties producerProperties) {
         this.producerProperties = producerProperties;
-    }
-
-    public void setSpaceDocumentKafkaTopicPropertyName(String spaceDocumentKafkaTopicPropertyName) {
-        this.spaceDocumentKafkaTopicPropertyName = spaceDocumentKafkaTopicPropertyName;
     }
 
     @Override

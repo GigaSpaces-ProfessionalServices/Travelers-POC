@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-service
+  namespace: dih
+spec:
+  type: NodePort  # or LoadBalancer if using cloud provider
+  selector:
+    app: pgadmin
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080  # accessible at http://<node-ip>:30080

@@ -1,11 +1,11 @@
 package com.epam.openspaces.persistency.kafka;
 
-import com.epam.openspaces.persistency.kafka.annotations.KafkaTopic;
 import com.epam.openspaces.persistency.kafka.protocol.impl.KafkaMessage;
 import com.epam.openspaces.persistency.kafka.protocol.impl.KafkaMessageFactory;
 import com.epam.openspaces.persistency.kafka.protocol.impl.KafkaMessageKey;
+import com.gigaspaces.sync.IntroduceTypeData;
+
 import kafka.javaapi.producer.Producer;
-import org.springframework.core.annotation.AnnotationUtils;
 
 /**
  * Default implementation of Space Synchronization Endpoint which uses Apache Kafka as external data store.
@@ -23,38 +23,27 @@ public class KafkaSpaceSynchronizationEndpoint extends AbstractKafkaSpaceSynchro
         this.config = config;
     }
 
-    /**
-     * For POJO inspects original data class for @KafkaTopic annotation. For space document find {@Link Config.spaceDocumentKafkaTopicPropertyName}.
-     */
     protected String resolveTopicForMessage(KafkaMessage message) {
-        if (message.hasDataAsObject()) {
-            // consider perf optimization with a cache
-            Object data = message.getDataAsObject();
-            KafkaTopic kafkaTopic = AnnotationUtils.findAnnotation(data.getClass(), KafkaTopic.class);
-            if (kafkaTopic == null) {
-                return null;
-            } else {
-                return kafkaTopic.value();
-            }
-        } else if(message.hasDataAsMap()){
-            Object topic = message.getDataAsMap().get(config.getSpaceDocumentKafkaTopicPropertyName());
-            return topic != null ? topic.toString() : null;
-        } else{
-            return null;
+        return "dih-write-back"; // TODO: read the name from config
+    }
+
+    public static class Config {
+    }
+
+    @Override
+    protected boolean applyFilter(KafkaMessage message) {
+        if (message.hasDataAsMap()) {
+            Object zzMetaDiTimestamp = message.getDataAsMap().get("ZZ_META_DI_TIMESTAMP");
+            return zzMetaDiTimestamp == null;
+        } else {
+            return true;
         }
     }
 
-
-    public static class Config {
-        private String spaceDocumentKafkaTopicPropertyName;
-
-        public String getSpaceDocumentKafkaTopicPropertyName() {
-            return spaceDocumentKafkaTopicPropertyName;
-        }
-
-        public void setSpaceDocumentKafkaTopicPropertyName(String spaceDocumentKafkaTopicPropertyName) {
-            this.spaceDocumentKafkaTopicPropertyName = spaceDocumentKafkaTopicPropertyName;
-        }
+    @Override
+    public void onIntroduceType(IntroduceTypeData introduceTypeData) {
+        super.onIntroduceType(introduceTypeData);
+        logger.info("--- Introducing type: " + introduceTypeData.getTypeDescriptor().getTypeName());
     }
 
 }

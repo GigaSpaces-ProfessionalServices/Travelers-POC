@@ -1,6 +1,7 @@
 package com.epam.openspaces.persistency.kafka.protocol.impl;
 
 import com.epam.openspaces.persistency.kafka.KafkaPersistenceException;
+import com.epam.openspaces.persistency.kafka.consumer.KafkaConsumerFactoryBean;
 import com.epam.openspaces.persistency.kafka.protocol.AbstractKafkaMessageFactory;
 import com.gigaspaces.sync.DataSyncOperation;
 import com.gigaspaces.sync.DataSyncOperationType;
@@ -46,7 +47,7 @@ public class KafkaMessageFactory implements AbstractKafkaMessageFactory<KafkaMes
                 throw new KafkaPersistenceException("Not serializable object of DataSyncOperation " + syncOperation);
             }
         } else if (syncOperation.supportsDataAsDocument()) {
-            return new KafkaMessage(type, syncOperation.getDataAsDocument().getProperties());
+            return new KafkaMessage(type, syncOperation.getDataAsDocument().getProperties(), syncOperation.getTypeDescriptor().getTypeName());
         } else {
             throw new KafkaPersistenceException("Unable to convert DataSyncOperation to Kafka protocol. " +
                     "DataSyncOperation = " + syncOperation);

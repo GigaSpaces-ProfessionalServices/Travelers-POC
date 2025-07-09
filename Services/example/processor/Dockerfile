@@ -1,4 +1,4 @@
-FROM gigaspaces/smart-cache-enterprise:17.1.1
+FROM gigaspaces/smart-cache-enterprise:17.0.1-patch-b-1
 COPY target/*.jar /opt/gigaspaces/bin/pu.jar 
 
 ENTRYPOINT ["/opt/entrypoint.sh"]
