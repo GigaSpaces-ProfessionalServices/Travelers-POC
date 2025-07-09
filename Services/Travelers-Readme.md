@@ -16,12 +16,12 @@ export CONSUMER_VERSION=0.13
 
 ---
 
-### 🚫 Uninstall Existing Deployment
+### 🚫 Uninstall Existing Deployment (if any)
 
 ```sh
 helm uninstall mirror -n dih
 helm uninstall space -n dih
-kubectl delete -f deployment.yaml
+kubectl delete -f ./Travelers-POC/Services/example/consumer-postgres/deployment.yaml
 ```
 
 ---
@@ -41,7 +41,7 @@ mvn clean install
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/dih-ppc64le
 ```
 
-3. **Build and Push Services**
+3. **Push Services to aws ecr**
 
 ```sh
 # SPACE
@@ -119,48 +119,51 @@ SELECT * FROM TRAV.ORDERS;
 
 ### 🔄 Create and Validate Data Pipeline
 
-1. **Create Pipelines via Data Source**
+1. **Create Pipelines in Spacedeck using DB2 Data Source**
+2. **Create service in Spacedeck**
     - Example pipelines:
-        - `customer-service` → `SELECT * FROM CUSTOMER WHERE ID=$ID`
-        - `order-service` → `SELECT ORDER_ID, PRODUCT_NAME, TOTAL_AMOUNT FROM ORDERS JOIN PRODUCT ON ORDERS.PRODUCT_ID = PRODUCT.PRODUCT_ID WHERE ORDER_ID=$ORDER_ID`
+        - `customer-service` → `SELECT * FROM CUSTOMER WHERE ID=$ID` (basic query)
+        - `order-service` → `SELECT ORDER_ID, PRODUCT_NAME, TOTAL_AMOUNT FROM ORDERS JOIN PRODUCT ON ORDERS.PRODUCT_ID = PRODUCT.PRODUCT_ID WHERE ORDER_ID=$ORDER_ID`  (query with join)
 
 2. **Verify:**
     - Data appears in Space
-    - API returns data
-    - Kafka topic shows filtered traffic
-    - PostgreSQL still empty
+    - API returns data using Swagger
+    - Kafka topic (no data initially as DI data will be filtered out)
+    - PostgreSQL still empty (no tables created)
 
 ---
 
 ## 🧪 Test Data Changes
 
 ### 🔁 DB2 → SpaceDeck
-
+#### Execute below queries in db2 (cdc changes will be shown on space). So after executing each query show space data.
 ```sql
 -- Insert
-INSERT INTO TRAV.CUSTOMER (ID, NAME, CREATEDDATE) VALUES (10, 'Charlie-12', '2025-06-30');
+INSERT INTO TRAV.CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (11, 'Kevin ThompsonDB2', 'kevin.db2@gmail.com', DATE('2024-11-01'));
 
-INSERT INTO TRAV.ORDERS VALUES 
-(1012, 1, 'Alice Johnson', 'alice.johnson@example.com', '123 Main St, NY', '123 Main St, NY', DATE('2025-07-01'), DATE('2025-07-05'), 'Shipped', 2, 51.98, 'Credit Card', CURRENT TIMESTAMP, CURRENT TIMESTAMP);
+INSERT INTO TRAV.ORDERS (ORDER_ID, PRODUCT_ID, CUSTOMER_ID, SHIPPING_ADDRESS, BILLING_ADDRESS, ORDER_DATE, DELIVERY_DATE, ORDER_STATUS, QUANTITY, TOTAL_AMOUNT, PAYMENT_METHOD, CREATED_AT, UPDATED_AT)
+VALUES (1010, 100, 1, '123 Maple St, NY', '123 Maple St, NY', DATE('2024-07-05'), NULL, 'Pending', 1, 29.99, 'Credit Card', DATE('2024-07-05'), DATE('2024-07-05'));
+
 
 -- Update
-UPDATE TRAV.CUSTOMER SET NAME = 'Alice Smith1 updated' WHERE ID = 11;
+UPDATE TRAV.CUSTOMER SET CUSTOMER_EMAIL = 'kevin.thompson-updated@outlook.com' WHERE ID = 11;
 
 -- Delete
 DELETE FROM TRAV.CUSTOMER WHERE ID = 10;
 ```
 
 ### 🔁 SpaceDeck → Postgres
-
+#### Execute below queries in spacedeck (changes will reflected in Postgres, it will create tables if not exist in Postgres)
 ```sql
 -- Insert
-INSERT INTO CUSTOMER (ID, NAME, CREATEDDATE) VALUES (12, 'Charlie-12-spacedeck', '2025-06-30');
+INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (12, 'Charlie Spacedeck', 'charlie.spacedeck@gmail.com', DATE('2024-12-01'));
+INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (13, 'ALice Spacedeck', 'charlie.spacedeck@gmail.com', DATE('2024-12-01'));
 
 -- Update
-UPDATE CUSTOMER SET NAME='Alice11-spacedeck-updated' WHERE ID=12;
+UPDATE CUSTOMER SET NAME='Charlie12 Spacedeck-updated' WHERE ID=12;
 
 -- Delete
-DELETE FROM CUSTOMER WHERE ID=12;
+DELETE FROM CUSTOMER WHERE ID=13;
 ```
 
 ---
