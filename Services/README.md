@@ -1,123 +1,195 @@
-# GigaSpaces XAP and Kafka integration
+# Build and Deploy Instructions
 
-## Introduction
+## Architecture   
+![travelers-architecture.png](image/travelers-architecture.png)
+---
 
-Apache Kafka is a high-throughput distributed messaging system.
-This project is aimed to integrate GigaSpaces with Apache Kafka so that GigaSpaces persists data operations to Kafka. Kafka is used in a sense of external data store. The data is Kafka in available for subscription for a range of use cases including loading into Hadoop or offline data warehousing systems for offline reporting and processing.
+## 🔧 Build and Deployment Instructions
 
-![Screenshot](./Pictures/Picture1.png)
+### 🔁 Environment Setup
 
-Kafka persistence is essentially an implementation of SpaceSynchronizationEndpoint. It takes a batch of data sync operations, converts them to a custom message protocol and sends to Kafka server using Kafka Producer API.
+```sh
+export VERSION=0.6
+export SPACE_VERSION=0.7
+export CONSUMER_VERSION=0.13
+```
 
-GigaSpace-Kafka protocol is simple and represents data operation. The message consists of operation type and data. Data itself could be represented either as a single object or as a dictionary of key/values. Object corresponds to Space entity and dictionary to SpaceDocument. Since message should be sent over the wire, they should be serialized to bytes in some way. The default encoder utilizes Java serialization mechanism which implies Space classes (domain model) be serializable. 
+---
 
-By default Kafka messages are uniformly distributed among Kafka partitions. Please note, even though data sync operations appear ordered in SpaceSynchronizationEndpoint, it doesn’t imply correct ordering of data processing in Kafka consumers. Please see the picture below for details:
+### 🚫 Uninstall Existing Deployment (if any)
+
+```sh
+helm uninstall mirror -n dih
+helm uninstall space -n dih
+kubectl delete -f ./Travelers-POC/Services/example/write-back/deployment.yaml
+```
+
+---
+
+### 🏗️ Build and Push Docker Images
+
+1. **Maven Build**
+
+```sh
+cd ./Travelers-POC/Services
+mvn clean install
+```
+
+2. **Authenticate with ECR**
+
+```sh
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/dih-ppc64le
+```
+
+3. **Push Services to aws ecr**
+
+```sh
+# SPACE
+cd ./Travelers-POC/Services/example/space
+docker build -t travelers/space:$SPACE_VERSION .
+docker tag travelers/space:$SPACE_VERSION public.ecr.aws/dih-ppc64le/travelers/space:$SPACE_VERSION
+docker push public.ecr.aws/dih-ppc64le/travelers/space:$SPACE_VERSION
+
+# MIRROR
+cd ../mirror
+docker build -t travelers/mirror:$VERSION .
+docker tag travelers/mirror:$VERSION public.ecr.aws/dih-ppc64le/travelers/mirror:$VERSION
+docker push public.ecr.aws/dih-ppc64le/travelers/mirror:$VERSION
+
+# FEEDER
+cd ../feeder
+docker build -t travelers/feeder:$VERSION .
+docker tag travelers/feeder:$VERSION public.ecr.aws/dih-ppc64le/travelers/feeder:$VERSION
+docker push public.ecr.aws/dih-ppc64le/travelers/feeder:$VERSION
+
+# WRITEBACK (Consumer)
+cd ../write-back
+docker build -t travelers/writeback-service:$CONSUMER_VERSION .
+docker tag travelers/writeback-service:$CONSUMER_VERSION public.ecr.aws/dih-ppc64le/travelers/writeback-service:$CONSUMER_VERSION
+docker push public.ecr.aws/dih-ppc64le/travelers/writeback-service:$CONSUMER_VERSION
+```
+
+---
+
+### 🚀 Install Services
+
+```sh
+# Install Space PU
+helm install space dihrepo/xap-pu \
+  --version 17.0.1-patch-b-1 \
+  --set instances=0,partitions=1,ha=true,resourceUrl=pu.jar,image.repository=public.ecr.aws/dih-ppc64le/travelers/space,image.tag=$SPACE_VERSION \
+  -n dih
+
+# Install Mirror PU
+helm install mirror dihrepo/xap-pu \
+  --version 17.0.1-patch-b-1 \
+  --set instances=1,partitions=0,resourceUrl=pu.jar,image.repository=public.ecr.aws/dih-ppc64le/travelers/mirror,image.tag=$VERSION \
+  -n dih
+
+# Deploy Writeback service
+kubectl apply -f ./Travelers-POC/Services/example/write-back/deployment.yaml
+```
+
+---
+
+## ▶️ Running the Demo
+
+### 🧹 Pre-Setup Cleanup
+
+- Deploy Space, Mirror, and Writeback services
+- Recreate Kafka topic
+- Delete existing pipelines
+- Ensure DB2 tables are created and contain data ([db2-queries.sql](example/script/db2-queries.sql))
+
+### ✅ Pre-Check
+
+- Space has no types/data
+- PostgreSQL has no tables
+- Kafka topic is empty
+- No pipeline exists for Space
+- DB2 tables to verify:
+
+```sql
+SELECT * FROM TRAV.CUSTOMER;
+SELECT * FROM TRAV.PRODUCT;
+SELECT * FROM TRAV.ORDERS;
+```
+
+---
+
+### 🔄 Create and Validate Data Pipeline
+
+1. **Create Pipelines in Spacedeck using DB2 Data Source**
+2. **Create service in Spacedeck**
+    - Example pipelines:
+        - `customer-service` → `SELECT * FROM CUSTOMER WHERE ID=$ID` (basic query)
+        - `order-service` → `SELECT ORDER_ID, PRODUCT_NAME, TOTAL_AMOUNT FROM ORDERS JOIN PRODUCT ON ORDERS.PRODUCT_ID = PRODUCT.PRODUCT_ID WHERE ORDER_ID=$ORDER_ID`  (query with join)
+
+2. **Verify:**
+    - Data appears in Space
+    - API returns data using Swagger
+    - Kafka topic (no data initially as DI data will be filtered out)
+    - PostgreSQL still empty (no tables created)
+
+---
+
+## 🧪 Test Data Changes
+
+### 🔁 DB2 → SpaceDeck
+#### Execute below queries in db2 (cdc changes will be shown on space). So after executing each query show space data.
+```sql
+-- Insert
+INSERT INTO TRAV.CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (11, 'Kevin ThompsonDB2', 'kevin.db2@gmail.com', DATE('2024-11-01'));
+
+INSERT INTO TRAV.ORDERS (ORDER_ID, PRODUCT_ID, CUSTOMER_ID, SHIPPING_ADDRESS, BILLING_ADDRESS, ORDER_DATE, DELIVERY_DATE, ORDER_STATUS, QUANTITY, TOTAL_AMOUNT, PAYMENT_METHOD, CREATED_AT, UPDATED_AT)
+VALUES (1010, 100, 1, '123 Maple St, NY', '123 Maple St, NY', DATE('2024-07-05'), NULL, 'Pending', 1, 29.99, 'Credit Card', DATE('2024-07-05'), DATE('2024-07-05'));
 
 
-![Screenshot](./Pictures/Picture2.png)
+-- Update
+UPDATE TRAV.CUSTOMER SET CUSTOMER_EMAIL = 'kevin.thompson-updated@outlook.com' WHERE ID = 11;
 
-## Getting started
+-- Delete
+DELETE FROM TRAV.CUSTOMER WHERE ID = 10;
+```
 
-There is an example application located in <project_root>/example which demonstrates how to configure Kafka persistence and implement a simple Kafka consumer.
+### 🔁 SpaceDeck → Postgres
+#### Execute below queries in spacedeck (changes will reflected in Postgres, it will create tables if not exist in Postgres)
+```sql
+-- Insert
+INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (12, 'Charlie Spacedeck', 'charlie.spacedeck@gmail.com', DATE('2024-12-01'));
+INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (13, 'ALice Spacedeck', 'charlie.spacedeck@gmail.com', DATE('2024-12-01'));
 
-In order to run an example, please follow the instruction below:
+-- Update
+UPDATE CUSTOMER SET NAME='Charlie12 Spacedeck-updated' WHERE ID=12;
 
-## Prerequisite
-- Installation of Confluent ( you can get it from from here: https://www.confluent.io/installation/ )  
-- [Installation of Gigaspaces v16.2.1](https://docs.gigaspaces.com/latest/started/installation.html?Highlight=downloading)
-- Git, Maven and JDK 1.8
+-- Delete
+DELETE FROM CUSTOMER WHERE ID=13;
+```
 
+---
 
-#### 1. Run insightedge/xap<br>
-        ./gs.sh host run-agent --auto --gsc=5
+## 🧹 Environment Cleanup
 
-#### 2  Edit <confluent-home>/etc/kafka/zookeeper.properties       
-  Gigaspace ZK is running on port 2181
- 
-  Edit <confluent-home>/etc/kafka/zookeeper.properties
-        
-  and modify the Confluent ZK port from 2181 to 2182 (could be any unused port)     
+Run the cleanup script to reset your environment:
 
-#### 3. Start ZK
-        cd <confluent-home>/bin
-        ./zookeeper-server-start ../etc/kafka/zookeeper.properties
-        
-#### 4.Edit <confluent-home>/etc/kafka/server.properties
-   
-   modify ZK port from 2181 to 2182        
-        
-#### 5.	Start Kafka server <br>
-        cd <confluent-home>/bin
-        ./kafka-server-start ../etc/kafka/server.properties 
-        
-Note : If bind exception occurred on port 8090 while running kafka, Edit server.propeties as below :
-        Uncomment below lines in /etc/kafka/server.properties and change port from 8090 to 8091 like below
-        
-        confluent.metadata.server.listeners=http://0.0.0.0:8091
-        confluent.metadata.server.advertised.listeners=http://127.0.0.1:8091
-        
-#### 6. initials environment variables:<br>
-        cd <project_root>/example/dev-scripts
-        edit set-env.sh
-        and put the right GROUP, LOCATORS and XAP_HOME (point to the right Gigaspaces version). 
-#### 7.	Build project <br>
-        ./rebuild.sh
-#### 8.	Deploy example to GigaSpaces <br>
-        ./deploy.sh
-#### 9.	Check GigaSpaces log files, there should be messages printed by Feeder and Consumer.<br>
+```sh
+# Note: update deployment yaml file path in  3-removeSpaceMirrorWBservice.sh, 6-deploySpaceMirrorWBservice.sh as per your path
+cd ./Travelers-POC/Services/example/script/
+./cleanupAll.sh
+```
 
-## Tear Down
-    ./undeploy.sh
+This will:
 
-## Configuration
+- Remove pipelines
+- Stop SpaceDeck services
+- Drop PostgreSQL tables
+- Recreate Kafka topic
+- Redeploy Space, Mirror, and Writeback services
 
-### Library dependency
+---
 
-The following maven dependency needs to be included to your project in order to use Kafka persistence. This artifact is built from <project_rood>/kafka-persistence source directory.
+## ✅ Summary
 
-![Screenshot](./Pictures/Picture3.png)
+This demo shows a complete data flow between DB2 → Space , Application -> Space → PostgreSQL using Kafka and writeback service.
 
-### Mirror service 
-
-Here is an example of Kafka Space Synchronization Endpoint configuration.
-
-![Screenshot](./Pictures/Picture4.png)
-
-Please consult [Kafka documentation](https://kafka.apache.org/documentation.html#producerconfigs) for the full list of available producer properties.
-The default properties applied to Kafka producer are the following:
-
-![Screenshot](./Pictures/Picture5.png)
-
-These default properties could be overridden if there is a need to customize GigaSpace-Kafka protocol. See Customization section below for details.
-
-### Space class
-
-In order to associate Kafka topic with domain model class, class should be annotated with @KafkaTopic annotation and marked as Serializable. Here is an example
-
-![Screenshot](./Pictures/Picture6.png)
-
-### Space documents
-
-To configure Kafka topic for SpaceDocuments or Extended SpaceDocument, the property KafkaPersistenceConstants.SPACE_DOCUMENT_KAFKA_TOPIC_PROPERTY_NAME should be added to document. Here is an example
-
-![Screenshot](./Pictures/Picture7.png)
-
-It’s also possible to configure name of the property which defines the Kafka topic for SpaceDocuments. Set spaceDocumentKafkaTopicName to the desired value as shown below.
-
-![Screenshot](./Pictures/Picture8.png)
-
-### Kafka consumers
-
-Kafka persistence library provides a wrapper around native Kafka Consumer API to preset configuration responsible for GigaSpace-Kafka protocol serialization. Please see com.epam.openspaces.persistency.kafka.consumer.KafkaConsumer, example of how to use it could be found in <project_root>/example module.
-
-## Customization
-
-Kafka persistence was designed to be extensible and customizable. 
-
-If you need to create a custom protocol between GigaSpace and Kafka, provide an implementation of AbstractKafkaMessage, AbstractKafkaMessageKey, AbstractKafkaMessageFactory.
-
-If you’d like to customize how data sync operations are sent to Kafka or how Kafka topic is chosen for given entity, provide an implement of AbstractKafkaSpaceSynchronizationEndpoint.
-
-If you want to create a custom serializer, look at KafkaMessageDecoder and KafkaMessageKeyDecoder.
-
-Kafka Producer client (which is used under the hood) could be configured with a number of settings, see Kafka documentation.
+---
