@@ -35,6 +35,15 @@ public class DB2JdbcClient {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(dbQuery);
             System.out.println(rs);
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columns = rsmd.getColumnCount();
+            System.out.println("\n Query Result:");
+            while (rs.next()) {
+                for (int i = 1; i <= columns; i++) {
+                    System.out.print(rsmd.getColumnName(i) + ": " + rs.getString(i) + "\t");
+                }
+                System.out.println();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
