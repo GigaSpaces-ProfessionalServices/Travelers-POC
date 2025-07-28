@@ -121,12 +121,17 @@ SELECT * FROM TRAV.ORDERS;
 
 1. **Create Pipelines in Spacedeck using DB2 Data Source**
 2. **Create service in Spacedeck**
-    - Example pipelines:
+    - Example:
         - `customer-service` → `SELECT * FROM CUSTOMER WHERE ID=$ID` (basic query)
         - `order-service` → `SELECT ORDER_ID, PRODUCT_NAME, TOTAL_AMOUNT FROM ORDERS JOIN PRODUCT ON ORDERS.PRODUCT_ID = PRODUCT.PRODUCT_ID WHERE ORDER_ID=$ORDER_ID`  (query with join)
 
 2. **Verify:**
     - Data appears in Space
+    ```sql
+    SELECT * FROM CUSTOMER ORDER BY ID; 
+    SELECT * FROM ORDERS  ORDER BY ORDER_ID;  
+    SELECT * FROM PRODUCT ORDER BY PRODUCT_ID; 
+    ```
     - API returns data using Swagger
     - Kafka topic (no data initially as DI data will be filtered out)
     - PostgreSQL still empty (no tables created)
@@ -149,15 +154,15 @@ VALUES (1010, 100, 1, '123 Maple St, NY', '123 Maple St, NY', DATE('2024-07-05')
 UPDATE TRAV.CUSTOMER SET CUSTOMER_EMAIL = 'kevin.thompson-updated@outlook.com' WHERE ID = 11;
 
 -- Delete
-DELETE FROM TRAV.CUSTOMER WHERE ID = 10;
+DELETE FROM TRAV.CUSTOMER WHERE ID = 11;
 ```
 
 ### 🔁 SpaceDeck → Postgres
 #### Execute below queries in spacedeck (changes will reflected in Postgres, it will create tables if not exist in Postgres)
 ```sql
 -- Insert
-INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (12, 'Charlie Spacedeck', 'charlie.spacedeck@gmail.com', DATE('2024-12-01'));
-INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (13, 'ALice Spacedeck', 'charlie.spacedeck@gmail.com', DATE('2024-12-01'));
+INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (12, 'Charlie Spacedeck', 'charlie.spacedeck1@gmail.com', '2024-12-01');
+INSERT INTO CUSTOMER (ID, NAME, CUSTOMER_EMAIL, CREATEDDATE) VALUES (13, 'ALice Spacedeck', 'charlie.spacedeck2@gmail.com', '2024-12-01');
 
 -- Update
 UPDATE CUSTOMER SET NAME='Charlie12 Spacedeck-updated' WHERE ID=12;
